@@ -139,32 +139,37 @@ impl World {
                     let mut j: usize = 0;
                     while j < swarm.members.len() {
                         // collision detection
-                        let mut collision: bool = false;
-                        // TODO
+                        let swarm_member_radius: f32 = 5.0;
 
-                        // recalculate health
-                        if collision {
-                            match swarm.members[j] {
-                                Some(member) => {
-                                    swarm.members[j].health -= 1;
+                        // unwrap member
+                        match swarm.members[j] {
+                            Some(mut member) => {
+                                // detect colllision
+                                // for now detects if the bullet passes within a
+                                // square hitbox around the swarm member
+                                if (self.bullets[i].x - member.x).abs() <= swarm_member_radius &&
+                                    (self.bullets[i].y - member.y).abs() <= swarm_member_radius
+                                {
+                                    member.health -= 1;
 
                                     if member.health == 0 {
                                         swarm.members[j] = None;
+                                        // increment to next member if member was set to None
                                         j += 1;
                                     }
+                                    // delete bullet
+                                    self.bullets.swap_remove(i);
+                                    i += 1;
                                 }
-                                None => {}
                             }
-                            // delete bullet
-                            self.bullets.swap_remove(i);
-                            i += 1;
+                            None => {}
                         }
-
+                        // increment to next member
                         j += 1;
                     }
                 }
             }
-
+            // increment to next bullet
             i += 1;
         }
         // Record time at end of update and return the time elapsed
