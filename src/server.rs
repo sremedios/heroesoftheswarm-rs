@@ -63,6 +63,7 @@ impl GameServer {
     fn handle_message(message: OwnedMessage, world: &Arc<RwLock<World>>) -> Option<OwnedMessage> {
         match message {
             // Handle incoming text data
+<<<<<<< HEAD
             OwnedMessage::Text(data) => {
                 match data.as_ref() {
                     // This is sent if the client wants the game's state
@@ -73,6 +74,15 @@ impl GameServer {
                         Some(OwnedMessage::Binary(vec![0; 20000]))
                     }
                     _ => None,
+=======
+            OwnedMessage::Text(data) => match data.as_ref() {
+                // This is sent if the client wants the game's state
+                "U" => {
+                    // Get a readable reference to the world
+                    // (locks until the world is not being written)
+                    let world = world.read().unwrap();
+                    Some(OwnedMessage::Text(world.serialize().unwrap()))
+>>>>>>> 4cfb3ba33adadc7e355e2aca4bef65dc0d297863
                 }
             }
             // Handle incoming binary data
@@ -93,7 +103,7 @@ pub fn run() {
     // Server parameters
     let hostname = "0.0.0.0";
     let port: u16 = 8080;
-    let update_freq: u64 = 1;
+    let update_freq: u64 = 60;
     // Create the world
     let world: Arc<RwLock<World>> = Arc::new(RwLock::new(World::new(1000.0, 1000.0)));
     // Copy a reference to world for the clients to use
@@ -109,7 +119,7 @@ pub fn run() {
         // Main loop
         loop {
             // Log time elapsed in previous update
-            info!(
+            debug!(
                 "Last update took {}s, {}ns",
                 last_update_time.as_secs(),
                 last_update_time.subsec_nanos()
@@ -128,15 +138,19 @@ pub fn run() {
     // Used to assign IDs to connections (players)
     let id_counter: AtomicUsize = AtomicUsize::new(0);
     // Used for serving
-    let mut core = Core::new().unwrap();
+    let mut core = Core::new().expect("Failed to initialize core");
     let handle = core.handle();
     // Bind to an address
-    let server = Server::bind(format!("{}:{}", hostname, port), &handle).unwrap();
+    let server = Server::bind(format!("{}:{}", hostname, port), &handle)
+        .expect("Failed to bind to an address");
     // This future represents what this server is going to do.
     // Handles a stream of incoming connections
     let server_future = server.incoming()
         // Handle errors
-        .map_err(move |InvalidConnection { error, .. }| error)
+        .map(Some)
+        .or_else(|_| -> Result<_, ()> { Ok(None) })
+        .filter_map(|x| x) 
+        //.map_err(move |InvalidConnection { error, .. }| error)
         // Handle connections
         .for_each(move |(upgrade, addr)| {
             // Log the connection
@@ -159,7 +173,7 @@ pub fn run() {
                 // Accept the message
                 .accept()
                 // Respond so the client knows the connection succeeded 
-                .and_then(move |(socket, _)| socket.send(Message::binary(vec![1,3,3,7]).into()))
+                .and_then(move |(socket, _)| socket.send(Message::text(session_id.to_string()).into()))
                 // Build a message responder
                 .and_then(move |socket| {
                     // Get sink and stream
@@ -170,7 +184,7 @@ pub fn run() {
                         // Handle the input and generate output
                         .filter_map(move |message| {
                             // Log the message
-                            info!("Message from Client: {:?}", message);
+                            info!("Message from Client {}: {:?}", session_id, message);
                             // Handle the message by type
                             GameServer::handle_message(message, &world)
                         })
@@ -184,7 +198,7 @@ pub fn run() {
             Ok(())
         });
     info!("Starting the server at {}:{}", hostname, port);
-    core.run(server_future).unwrap();
+    core.run(server_future).expect("Failed to start server");
 }
 
 // TODO: learn what this does and how it works

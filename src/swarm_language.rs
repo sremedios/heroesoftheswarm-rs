@@ -44,8 +44,8 @@ impl FromStr for SwarmCommand {
 
         // Match
         match &command[0] {
-            &"MOVE" => Ok(SwarmCommand::MOVE),        // Move command case
-            &"NOOP" => Ok(SwarmCommand::NOOP),        // Noop command case
+            &"MOVE" => Ok(SwarmCommand::MOVE), // Move command case
+            &"NOOP" => Ok(SwarmCommand::NOOP), // Noop command case
             &"TURN" => {
                 if command.len() == 2
                 // Check if turn parameter was provided
@@ -61,20 +61,20 @@ impl FromStr for SwarmCommand {
                                     description: "Invalid float parameter for TURN.".into(),
                                 })
                             }
-                        }        // If parameter is not normal, throw error
+                        } // If parameter is not normal, throw error
                         Err(_) => Err(GenericError {
                             description: "Invalid float parameter for TURN.".into(),
-                        }),        // If parameter cannot be converted to float, throw error
+                        }), // If parameter cannot be converted to float, throw error
                     }
                 } else {
                     Err(GenericError {
                         description: "No parameters found for TURN.".into(),
                     })
                 }
-            }        // No parameter provided
+            } // No parameter provided
             _ => Err(GenericError {
                 description: "Command not recognized.".into(),
-            }),        // Invalid command case
+            }), // Invalid command case
         }
     }
 }
@@ -106,7 +106,7 @@ fn test_verifier() {
 #[derive(Clone, Debug)]
 pub struct SwarmProgram {
     /// The list of commands
-    pub commands: [SwarmCommand; MAX_NUM_COMMANDS],
+    pub commands: Vec<SwarmCommand>,
 
     /// Program counter pointing to current command
     pub program_counter: usize,
@@ -115,9 +115,9 @@ pub struct SwarmProgram {
 /// Some functions for SwarmProgram
 impl SwarmProgram {
     /// Constructor (empty)
-    pub fn new() -> Self {
+    pub fn new(commands: Vec<SwarmCommand>) -> Self {
         SwarmProgram {
-            commands: [SwarmCommand::NOOP; MAX_NUM_COMMANDS],
+            commands: commands,
             program_counter: 0,
         }
     }
@@ -131,8 +131,40 @@ impl FromStr for SwarmProgram {
     /// Converts a string to a SwarmProgram
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // TODO: Split the input and use SwarmCommand's from_str
-        unimplemented!()
+        // unimplemented!()
+
+        // Vector of SwarmCommands
+        let mut command_list: Vec<SwarmCommand> = Vec::new();
+
+        // Turn lines into commands
+        for line in s.trim().lines() {
+            command_list.push(match line.parse() {
+                Ok(comm) => comm,                // If the command is valid, add it to the list
+                Err(error) => return Err(error), // If the command is invalid, throw and error
+            });
+        }
+
+        // Return command list
+        Ok(SwarmProgram::new(command_list))
     }
+}
+
+#[test]
+fn test_comlist_generator() {
+    let mut program: String = String::new();
+    program = "  MOVE\n   TURN 30.0\n MOVE\n     NOOP\n".into(); // String is goofy to test whitespace stripping
+
+    // Generate command list from program
+    let command_list: SwarmProgram = match program.parse() {
+        Ok(comlist) => comlist,
+        Err(error) => panic!("Program failed with error: {}", error),
+    };
+
+    // Check if all commands registered correctly
+    assert_eq!(command_list.commands[0], SwarmCommand::MOVE);
+    assert_eq!(command_list.commands[1], SwarmCommand::TURN(30.0));
+    assert_eq!(command_list.commands[2], SwarmCommand::MOVE);
+    assert_eq!(command_list.commands[3], SwarmCommand::NOOP);
 }
 
 #[cfg(test)]
