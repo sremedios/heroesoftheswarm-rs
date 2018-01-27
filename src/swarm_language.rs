@@ -110,6 +110,7 @@ pub struct SwarmProgram {
 
     /// Program counter pointing to current command
     pub program_counter: usize,
+
 }
 
 /// Some functions for SwarmProgram
@@ -131,7 +132,6 @@ impl FromStr for SwarmProgram {
     /// Converts a string to a SwarmProgram
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // TODO: Split the input and use SwarmCommand's from_str
-        // unimplemented!()
 
         // Vector of SwarmCommands
         let mut command_list: Vec<SwarmCommand> = Vec::new();
