@@ -71,9 +71,6 @@ impl Swarm {
             SwarmCommand::NOOP => {
                 println!("No operation.");
             }
-            _ => {
-                panic!("Not a possible swarm command");
-            }
         }
 
         self.program.program_counter += 1;
@@ -83,6 +80,7 @@ impl Swarm {
         // TODO: Bounds checking
         // maybe do as match?
         self.direction %= 360.0;
+        self.program.program_counter %= self.program.commands.len();
     }
 }
 /// Represents a member of a swarm
@@ -143,7 +141,7 @@ mod tests {
     fn update_swarm() {
         let mut swarm = Swarm::new(0.0, 0.0);
         let move_command: SwarmCommand = SwarmCommand::MOVE;
-        let turn_command: SwarmCommand = SwarmCommand::TURN(45.0);
+        let turn_command: SwarmCommand = SwarmCommand::TURN(-45.0);
 
         // 16 steps to complete move turn pairs at 45 degrees
         let num_steps: usize = 16;
