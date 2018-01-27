@@ -113,12 +113,14 @@ mod tests {
     #[test]
     fn update_swarm() {
         let mut swarm = Swarm::new(0.0, 0.0);
+
         swarm.x = 0.;
         swarm.y = 0.;
         assert_eq!(swarm.x, 0.);
         assert_eq!(swarm.y, 0.);
 
         swarm.direction = 45.0;
+
         swarm.update();
 
         assert_eq!(swarm.x, 2_f32.sqrt());
@@ -126,7 +128,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn update_bullet() {
         let mut bullet = Bullet::new(0, 0.0, 0.0);
         bullet.update();
