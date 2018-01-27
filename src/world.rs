@@ -116,7 +116,7 @@ impl World {
 
         // Update each bullet
         let mut i: usize = 0;
-        while i < self.bullets.len() {
+        while i < self.bullets.len() - 1 {
             // position update bullets
             self.bullets[i].update();
 
@@ -137,7 +137,7 @@ impl World {
                     self.bullets[i].y - swarm.y <= epsilon
                 {
                     let mut j: usize = 0;
-                    while j < swarm.members.len() {
+                    while j < swarm.members.len() - 1 {
                         // collision detection
                         let swarm_member_radius: f32 = 5.0;
 
