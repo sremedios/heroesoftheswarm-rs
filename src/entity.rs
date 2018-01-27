@@ -45,23 +45,21 @@ pub struct Swarm {
 /// Functions for a swarm
 impl Swarm {
     /// Constructor
-    pub fn new(x: f32, y: f32) -> Self {
+    pub fn new(x: f32, y: f32, num_members: usize) -> Self {
         Swarm {
             x: x,
             y: y,
             direction: 0.0,
-            members: vec![Some(SwarmMember::new())],
+            members: vec![Some(SwarmMember::new()); num_members],
             color: (0, 0, 0),
             experience: 0,
             program: SwarmProgram::new(vec![
                 SwarmCommand::MOVE,
-                SwarmCommand::TURN(90.0),
+                SwarmCommand::TURN(60.0),
                 SwarmCommand::MOVE,
-                SwarmCommand::TURN(90.0),
+                SwarmCommand::TURN(60.0),
                 SwarmCommand::MOVE,
-                SwarmCommand::TURN(90.0),
-                SwarmCommand::MOVE,
-                SwarmCommand::TURN(90.0),
+                SwarmCommand::TURN(60.0),
             ]),
         }
     }
@@ -71,7 +69,13 @@ impl Swarm {
         self
     }
     /// Performs 1 tick
-    pub fn update(&mut self, swarm_id: usize, world_width: f32, world_height: f32) {
+    pub fn update(
+        &mut self,
+        swarm_id: usize,
+        world_width: f32,
+        world_height: f32,
+        bullets: &mut Vec<Bullet>,
+    ) {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 1.0;
         if self.program.commands.len() != 0 {
@@ -90,6 +94,9 @@ impl Swarm {
                     self.x += swarm_update_distance * self.direction.to_radians().cos();
                     self.y -= swarm_update_distance * self.direction.to_radians().sin();
                 }
+                SwarmCommand::FIRE => {
+                    self.fire(swarm_id, bullets);
+                }
                 SwarmCommand::TURN(turn_amt) => {
                     // turn logic
                     self.direction += turn_amt;
@@ -106,70 +113,66 @@ impl Swarm {
         }
     }
 
-    pub fn fire(&self, swarm_id: usize, &mut world: World) {
+    pub fn fire(&self, swarm_id: usize, bullets: &mut Vec<Bullet>) {
         // spawn bullet with velocity vector
-        for member in self.members {
+        for member in &self.members {
             match member {
-                Some(SwarmMember) => {
-                    new_bullet: Bullet = Bullet.new(
-                        owner = swarm_id,
-                        x = self.x,
-                        y = self.y,
-                        direction = self.direction,
+                &Some(cur_swarm_member) => {
+                    let new_bullet: Bullet = Bullet::new(
+                        swarm_id,
+                        self.x + cur_swarm_member.x,
+                        self.y + cur_swarm_member.y,
+                        self.direction,
                     );
-                    world.bullets.push(new_bullet);
+                    bullets.push(new_bullet);
                 }
-                None => None,
+                &None => {}
             }
         }
     }
-	
-	// Calculates the offset for a number of position parameters
-	pub fn calculate_offsets(radius: f32) -> Vec<(f32,f32)>
-	{	
-		// Initialize list with origin offset (0,0)
-		let mut offset_list: Vec<(f32, f32)> = Vec::new();
-		offset_list.push((0.0, 0.0));
-		
-		// Generate other offsets
-		for i in (1..4)
-		{
-			let shell: f32 = i as f32;
-		
-			// Generate i*4 positions for each shell
-			for j in (0..(i*4))
-			{
-				let rads: f32 = (j as f32)*((3.141592654)/(2.0*shell));						// Calculate angle of current offset
-				offset_list.push((shell*radius*(rads.cos()), shell*radius*(rads.sin())));	// Push scaled coordinates onto array
-			}
-		}
-		
-		// Return generated offsets
-		offset_list
-	}
-	
+
+    // Calculates the offset for a number of position parameters
+    pub fn calculate_offsets(radius: f32) -> Vec<(f32, f32)> {
+        // Initialize list with origin offset (0,0)
+        let mut offset_list: Vec<(f32, f32)> = Vec::new();
+        offset_list.push((0.0, 0.0));
+
+        // Generate other offsets
+        for i in 1..4 {
+            let shell: f32 = i as f32;
+
+            // Generate i*4 positions for each shell
+            for j in 0..(i * 4) {
+                let rads: f32 = (j as f32) * ((3.141592654) / (2.0 * shell)); // Calculate angle of current offset
+                offset_list.push((
+                    shell * radius * (rads.cos()),
+                    shell * radius * (rads.sin()),
+                )); // Push scaled coordinates onto array
+            }
+        }
+
+        // Return generated offsets
+        offset_list
+    }
 }
 
 #[test]
-fn test_offset_calc()
-{
-	let rad1: f32 = 1.0;
-	let rad2: f32 = 2.5;
-	
-	let ooflist1: Vec<(f32,f32)> = Swarm::calculate_offsets(rad1);
-	let ooflist2: Vec<(f32,f32)> = Swarm::calculate_offsets(rad2);
-	
-	println!("Offsets of radius 1.0:");
-	for tuple in ooflist1.iter()
-	{
-		println!("{:?}", tuple);
-	}
-	
-	println!("\nOffsets of radius 2.5:");
-	for tuple in ooflist2.iter()
-	{
-		println!("{:?}", tuple);
-	}
+fn test_offset_calc() {
+    let rad1: f32 = 1.0;
+    let rad2: f32 = 2.5;
+
+    let ooflist1: Vec<(f32, f32)> = Swarm::calculate_offsets(rad1);
+    let ooflist2: Vec<(f32, f32)> = Swarm::calculate_offsets(rad2);
+
+    println!("Offsets of radius 1.0:");
+    for tuple in ooflist1.iter() {
+        println!("{:?}", tuple);
+    }
+
+    println!("\nOffsets of radius 2.5:");
+    for tuple in ooflist2.iter() {
+        println!("{:?}", tuple);
+    }
 }
 
 /// Represents a member of a swarm
@@ -238,10 +241,10 @@ mod tests {
     /// then move.  This will happen four times, and should return to the original
     /// position with a direction of 0 degrees.
     fn update_swarm() {
-        let test_world: World = World::new(100.0, 100.0);
+        let mut test_world: World = World::new(100.0, 100.0);
         let origin_x: f32 = 50.0;
         let origin_y: f32 = 50.0;
-        let mut swarm = Swarm::new(origin_x, origin_y);
+        let mut swarm = Swarm::new(origin_x, origin_y, 1);
         swarm.program.commands.clear();
         let move_command: SwarmCommand = SwarmCommand::MOVE;
         let turn_command: SwarmCommand = SwarmCommand::TURN(-45.0);
@@ -258,7 +261,12 @@ mod tests {
 
         // execute commands
         for _ in 0..num_steps {
-            swarm.update(test_world.width, test_world.height);
+            swarm.update(
+                0,
+                test_world.width,
+                test_world.height,
+                &mut test_world.bullets,
+            );
             println!("x: {}, y: {}, dir: {}", swarm.x, swarm.y, swarm.direction);
         }
         assert!(swarm.x - origin_x <= f32::EPSILON);
@@ -268,14 +276,20 @@ mod tests {
 
     #[test]
     fn test_world_bounds() {
-        let test_world: World = World::new(10.0, 10.0);
-        let mut swarm = Swarm::new(0.0, 0.0);
+        let mut test_world: World = World::new(10.0, 10.0);
+        let mut swarm = Swarm::new(0.0, 0.0, 1);
+        let swarm_id = 0;
         let turn_amt = -100.0;
         swarm.program.commands.push(SwarmCommand::TURN(turn_amt));
         swarm.program.commands.push(SwarmCommand::MOVE);
 
         for _ in 0..2 {
-            swarm.update(test_world.width, test_world.height);
+            swarm.update(
+                swarm_id,
+                test_world.width,
+                test_world.height,
+                &mut test_world.bullets,
+            );
             println!("x: {}, y: {}, dir: {}", swarm.x, swarm.y, swarm.direction);
         }
 
@@ -291,5 +305,23 @@ mod tests {
         bullet.update();
         assert!(bullet.x - 1. <= f32::EPSILON);
         assert!(bullet.y - 0. <= f32::EPSILON);
+    }
+    #[test]
+    fn test_bullets() {
+        let mut world: World = World::new(10.0, 10.0);
+        let swarm_id: usize = 0;
+        world.swarms.insert(swarm_id, Swarm::new(5.0, 5.0, 6));
+        // TODO: handle the option better later
+        world.swarms.get_mut(&swarm_id).unwrap().program.commands = vec![SwarmCommand::FIRE];
+
+        world.swarms.get_mut(&swarm_id).unwrap().update(
+            swarm_id,
+            world.width,
+            world.height,
+            &mut world.bullets,
+        );
+
+        assert_eq!(world.bullets.len(), 6);
+
     }
 }
