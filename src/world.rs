@@ -111,12 +111,15 @@ impl World {
         let start_time = Instant::now();
         // Update each member of the swarm with its own program
         for (id, swarm) in self.swarms.iter_mut() {
-            swarm.update(*id, self.width, self.height, &mut self.bullets)
+            swarm.update(*id, self.width, self.height, &mut self.bullets);
         }
         // Update each bullet
         // TODO: different logic for this as a bullet could be destroyed
-        for bullet in self.bullets.iter_mut() {
-            bullet.update()
+        for i in 0..self.bullets.len() {
+            self.bullets[i].update();
+            if self.bullets[i].duration == 0 {
+                self.bullets.swap_remove(i);
+            }
         }
         // Record time at end of update and return the time elapsed
         Instant::now().duration_since(start_time)

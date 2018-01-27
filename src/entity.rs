@@ -38,6 +38,8 @@ pub struct Swarm {
     pub color: (u8, u8, u8),
     /// Experience gained by the swarm
     pub experience: i64,
+    /// Duration of bullets in ticks
+    pub bullet_duration: i16,
     /// Program used to execute the swarm
     #[serde(skip_serializing)]
     pub program: SwarmProgram,
@@ -53,6 +55,7 @@ impl Swarm {
             members: vec![Some(SwarmMember::new()); num_members],
             color: (0, 0, 0),
             experience: 0,
+            bullet_duration: 60 * 5, // 60fps * 5 seconds default duration
             program: SwarmProgram::new(vec![
                 SwarmCommand::MOVE,
                 SwarmCommand::TURN(60.0),
@@ -123,6 +126,7 @@ impl Swarm {
                         self.x + cur_swarm_member.x,
                         self.y + cur_swarm_member.y,
                         self.direction,
+                        self.bullet_duration,
                     );
                     bullets.push(new_bullet);
                 }
@@ -208,18 +212,21 @@ pub struct Bullet {
     pub y: f32,
     /// Direction in degrees
     pub direction: f32,
+    /// Duration of bullet in ticks; counts down to 0
+    pub duration: i16,
 }
 
 /// Functions for a bullet
 impl Bullet {
     /// Constructor
     // TODO: add arguments
-    pub fn new(owner: usize, x: f32, y: f32, direction: f32) -> Self {
+    pub fn new(owner: usize, x: f32, y: f32, direction: f32, duration: i16) -> Self {
         Bullet {
             owner: owner,
             x: x,
             y: y,
             direction: 0.0,
+            duration: duration,
         }
     }
     /// Performs 1 tick
@@ -229,6 +236,8 @@ impl Bullet {
         // Update the x and y position
         self.x += bullet_update_distance * self.direction.to_radians().cos();
         self.y -= bullet_update_distance * self.direction.to_radians().sin();
+        // Update duration by ticks
+        self.duration -= 1
         // TODO: Check collision
     }
 }
@@ -300,7 +309,7 @@ mod tests {
 
     #[test]
     fn update_bullet() {
-        let mut bullet = Bullet::new(0, 0.0, 0.0, 0.0);
+        let mut bullet = Bullet::new(0, 0.0, 0.0, 0.0, 5);
         bullet.direction = 90.0;
         bullet.update();
         assert!(bullet.x - 1. <= f32::EPSILON);
