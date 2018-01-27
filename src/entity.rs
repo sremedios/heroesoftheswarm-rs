@@ -135,25 +135,6 @@ impl Swarm {
     }
 
 
-    pub fn fire(&self, swarm_id: usize, bullets: &mut Vec<Bullet>) {
-        // spawn bullet with velocity vector
-        for member in &self.members {
-            match member {
-                &Some(cur_swarm_member) => {
-                    let new_bullet: Bullet = Bullet::new(
-                        swarm_id,
-                        self.x + cur_swarm_member.x,
-                        self.y + cur_swarm_member.y,
-                        self.direction,
-                        self.bullet_duration,
-                    );
-                    bullets.push(new_bullet);
-                }
-                &None => {}
-            }
-        }
-    }
-
     // Calculates the offset for a number of position parameters
     pub fn calculate_offsets(radius: f32) -> Vec<(f32, f32)> {
         // Initialize list with origin offset (0,0)
