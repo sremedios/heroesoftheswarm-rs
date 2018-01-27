@@ -119,6 +119,7 @@ impl World {
         let mut upper_bound_bullets: usize = self.bullets.len();
         while i < upper_bound_bullets {
             // position update bullets
+
             self.bullets[i].update();
 
             // remove expired bullets
@@ -126,6 +127,7 @@ impl World {
                 self.bullets.swap_remove(i);
                 upper_bound_bullets -= 1;
                 continue;
+
             }
 
             // collision detection here
