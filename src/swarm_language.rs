@@ -52,9 +52,7 @@ pub struct SwarmProgram {
 impl SwarmProgram {
     /// Constructor (empty)
     pub fn new() -> Self {
-        SwarmProgram {
-            commands: [SwarmCommand::NOOP; MAX_NUM_COMMANDS],
-        }
+        SwarmProgram { commands: [SwarmCommand::NOOP; MAX_NUM_COMMANDS] }
     }
 }
 

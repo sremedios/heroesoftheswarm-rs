@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with heroesoftheswarm.  If not, see <http://www.gnu.org/licenses/>.
 use swarm_language::SwarmProgram;
+use swarm_language::SwarmCommand;
 use std::f32::{self, consts};
 
 /// The initial size of a swarm
@@ -54,9 +55,28 @@ impl Swarm {
     pub fn update(&mut self) {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 1.0;
-        // Update the x and y position
-        self.x += swarm_update_distance * self.direction.to_radians().cos();
-        self.y -= swarm_update_distance * self.direction.to_radians().sin();
+
+        for command in self.program.commands.iter() {
+            match command {
+                &SwarmCommand::MOVE => {
+                    // Update the x and y position
+                    self.x += swarm_update_distance * self.direction.to_radians().cos();
+                    self.y -= swarm_update_distance * self.direction.to_radians().sin();
+                }
+                &SwarmCommand::TURN(turn_amt) => {
+                    // turn logic
+                    self.direction += turn_amt;
+                }
+                &SwarmCommand::NOOP => {
+                    println!("No operation.");
+                }
+                _ => {
+                    panic!("Not a possible swarm command");
+                }
+
+            }
+        }
+
         // TODO: Check collision
     }
 }
@@ -112,8 +132,25 @@ impl Bullet {
 mod tests {
     use super::*;
     #[test]
+    /// This test will start at the origin with 0 degrees, move, turn 45 degrees
+    /// then move.  This will happen four times, and should return to the original
+    /// position with a direction of 0 degrees.
     fn update_swarm() {
         let mut swarm = Swarm::new(0.0, 0.0);
+        let move_command: SwarmCommand = SwarmCommand::MOVE;
+        let turn_command: SwarmCommand = SwarmCommand::TURN(45.0);
+
+        for i in (0..8).step_by(2) {
+            swarm.program.commands[i] = move_command;
+            swarm.program.commands[i + 1] = turn_command;
+            println!("{:?} ", i);
+        }
+
+        println!("{:?}", swarm.program.commands);
+
+        // TODO Should update run one command or one tick????
+
+
         // check 0 degree
         swarm.direction = 0.0;
         swarm.update();
@@ -135,6 +172,8 @@ mod tests {
         swarm.update();
         assert!(swarm.x - 6. <= f32::EPSILON);
         assert!(swarm.y == -1.);
+
+
     }
 
     #[test]
