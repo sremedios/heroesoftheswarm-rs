@@ -67,11 +67,8 @@ impl World {
         let (x, y) = self.random_position();
         // Get a random color
         let color = World::random_color();
-        self.swarms.insert(
-            id,
-            Swarm::new(x, y, initial_num_members)
-                .with_color(color),
-        );
+        self.swarms
+            .insert(id, Swarm::new(x, y, initial_num_members).with_color(color));
     }
 
     /// Removes a player to the server with the given ID
@@ -115,15 +112,18 @@ impl World {
         }
 
         // Update each bullet
+
         let mut i: usize = 0;
         while i < self.bullets.len() {
             // position update bullets
+
             self.bullets[i].update();
 
             // remove expired bullets
             if self.bullets[i].duration == 0 {
                 self.bullets.swap_remove(i);
                 i += 1;
+
             }
 
             // collision detection here
