@@ -71,7 +71,7 @@ impl Swarm {
         self
     }
     /// Performs 1 tick
-    pub fn update(&mut self, world_width: f32, world_height: f32) {
+    pub fn update(&mut self, swarm_id: usize, world_width: f32, world_height: f32) {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 1.0;
         if self.program.commands.len() != 0 {
@@ -79,9 +79,9 @@ impl Swarm {
                 SwarmCommand::MOVE => {
                     // When within EPSILON of edge of the world, bounce off it
                     const EPSILON: f32 = 10.0;
-                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width
-                        || self.y - EPSILON <= 0.0
-                        || self.y + EPSILON >= world_height
+                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width ||
+                        self.y - EPSILON <= 0.0 ||
+                        self.y + EPSILON >= world_height
                     {
                         self.direction = -self.direction;
                     }
@@ -103,7 +103,24 @@ impl Swarm {
             self.program.program_counter += 1;
             self.program.program_counter %= self.program.commands.len();
 
-            // TODO: Check collision
+        }
+    }
+
+    pub fn fire(&self, swarm_id: usize, &mut world: World) {
+        // spawn bullet with velocity vector
+        for member in self.members {
+            match member {
+                Some(SwarmMember) => {
+                    new_bullet: Bullet = Bullet.new(
+                        owner = swarm_id,
+                        x = self.x,
+                        y = self.y,
+                        direction = self.direction,
+                    );
+                    world.bullets.push(new_bullet);
+                }
+                None => None,
+            }
         }
     }
 }
