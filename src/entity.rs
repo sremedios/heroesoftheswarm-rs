@@ -54,8 +54,8 @@ impl Swarm {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 1.0;
         // Update the x and y position
-        self.x += swarm_update_distance * self.direction.to_radians.cos();
-        self.y += swarm_update_distance * self.direction.to_radians.sin();
+        self.x += swarm_update_distance * self.direction.to_radians().cos();
+        self.y += swarm_update_distance * self.direction.to_radians().sin();
         // TODO: Check collision
     }
 }
@@ -81,7 +81,7 @@ pub struct Bullet {
     /// Y position
     pub y: f32,
     /// Direction in degrees
-
+    pub direction: f32,
 }
 
 /// Functions for a bullet
@@ -93,7 +93,7 @@ impl Bullet {
             owner: owner,
             x: x,
             y: y,
-            direction: 0,
+            direction: 0.0,
         }
     }
     /// Performs 1 tick
@@ -101,8 +101,8 @@ impl Bullet {
         // TODO: put this somewhere else
         let bullet_update_distance: f32 = 1.0;
         // Update the x and y position
-        self.x += bullet_update_distance * self.direction.to_radians.cos();
-        self.y += bullet_update_distance * self.direction.to_radians.sin();
+        self.x += bullet_update_distance * self.direction.to_radians().cos();
+        self.y += bullet_update_distance * self.direction.to_radians().sin();
         // TODO: Check collision
     }
 }
@@ -112,11 +112,11 @@ mod tests {
     use super::*;
     #[test]
     fn update_swarm() {
-        let mut swarm = Swarm::new();
+        let mut swarm = Swarm::new(0.0, 0.0);
         swarm.x = 5.;
         swarm.y = 4.;
-        asserteq!(swarm.x, 5.);
-        asserteq!(swarm.y, 4.);
+        assert_eq!(swarm.x, 5.);
+        assert_eq!(swarm.y, 4.);
         swarm.update();
     }
 
