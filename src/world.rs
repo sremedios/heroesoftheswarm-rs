@@ -113,15 +113,58 @@ impl World {
         for (id, swarm) in self.swarms.iter_mut() {
             swarm.update(*id, self.width, self.height, &mut self.bullets);
         }
+
         // Update each bullet
-        // TODO: different logic for this as a bullet could be destroyed
         let mut i: usize = 0;
         while i < self.bullets.len() {
+            // position update bullets
             self.bullets[i].update();
+
+            // remove expired bullets
             if self.bullets[i].duration == 0 {
                 self.bullets.swap_remove(i);
                 i += 1;
             }
+
+            // collision detection here
+
+            // check each swarm
+            for (id, swarm) in self.swarms.iter_mut() {
+                // TODO: choose the epsilon to consider as "incoming dangerous
+                // bullets"
+                let epsilon: f32 = 10.0;
+                if self.bullets[i].x - swarm.x <= epsilon &&
+                    self.bullets[i].y - swarm.y <= epsilon
+                {
+                    let mut j: usize = 0;
+                    while j < swarm.members.len() {
+                        // collision detection
+                        let mut collision: bool = false;
+                        // TODO
+
+                        // recalculate health
+                        if collision {
+                            match swarm.members[j] {
+                                Some(member) => {
+                                    swarm.members[j].health -= 1;
+
+                                    if member.health == 0 {
+                                        swarm.members[j] = None;
+                                        j += 1;
+                                    }
+                                }
+                                None => {}
+                            }
+                            // delete bullet
+                            self.bullets.swap_remove(i);
+                            i += 1;
+                        }
+
+                        j += 1;
+                    }
+                }
+            }
+
             i += 1;
         }
         // Record time at end of update and return the time elapsed
