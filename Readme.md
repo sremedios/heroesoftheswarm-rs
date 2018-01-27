@@ -4,7 +4,7 @@
 * Decide on bounds for the game
 * Implement a function that takes index and returns the x/y offsets (swarm formation)
 * Ryan's collision stuff
-* For Sam: Refactor fire update and swarm update to take references to specific world variables
+* Multiple swarm members currently all spawn at the swarm origin.  They need to be distributed within the swarm area
 ### Frontend
 * Positions are absolute right now and the bounding isn't implemented
 * Render stuff
