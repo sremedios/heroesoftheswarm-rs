@@ -80,7 +80,7 @@ impl Swarm {
         bullets: &mut Vec<Bullet>,
     ) {
         // TODO: put this somewhere else
-        let swarm_update_distance: f32 = 1.0;
+        let swarm_update_distance: f32 = 100.0;
         if self.program.commands.len() != 0 {
             match self.program.commands[self.program.program_counter] {
                 SwarmCommand::MOVE => {
@@ -112,9 +112,28 @@ impl Swarm {
             // Update program_counter to point to next command
             self.program.program_counter += 1;
             self.program.program_counter %= self.program.commands.len();
-
         }
     }
+
+    pub fn fire(&self, swarm_id: usize, bullets: &mut Vec<Bullet>) {
+        // spawn bullet with velocity vector
+        for member in &self.members {
+            match member {
+                &Some(cur_swarm_member) => {
+                    let new_bullet: Bullet = Bullet::new(
+                        swarm_id,
+                        self.x + cur_swarm_member.x,
+                        self.y + cur_swarm_member.y,
+                        self.direction,
+                        self.bullet_duration,
+                    );
+                    bullets.push(new_bullet);
+                }
+                &None => {}
+            }
+        }
+    }
+
 
     pub fn fire(&self, swarm_id: usize, bullets: &mut Vec<Bullet>) {
         // spawn bullet with velocity vector
@@ -331,6 +350,5 @@ mod tests {
         );
 
         assert_eq!(world.bullets.len(), 6);
-
     }
 }
