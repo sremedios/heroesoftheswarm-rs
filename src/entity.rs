@@ -16,7 +16,7 @@
 use swarm_language::SwarmProgram;
 use swarm_language::SwarmCommand;
 use world::World;
-use std::f32::{self, consts};
+use std::f32;
 
 /// The initial size of a swarm
 const INITIAL_SWARM_SIZE: usize = 10;
@@ -63,16 +63,15 @@ impl Swarm {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 1.0;
         if self.program.commands.len() != 0 {
-
             match self.program.commands[self.program.program_counter] {
                 SwarmCommand::MOVE => {
                     debug!("Swarm is moving forward");
 
                     // When within EPSILON of edge of the world, bounce off it
-                    let EPSILON: f32 = 10.0;
-                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width ||
-                        self.y - EPSILON <= 0.0 ||
-                        self.y + EPSILON >= world_height
+                    const EPSILON: f32 = 10.0;
+                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width
+                        || self.y - EPSILON <= 0.0
+                        || self.y + EPSILON >= world_height
                     {
                         self.direction = -self.direction;
                     }
@@ -97,7 +96,6 @@ impl Swarm {
             self.program.program_counter %= self.program.commands.len();
 
             // TODO: Check collision
-
         }
     }
 }
@@ -186,7 +184,7 @@ mod tests {
         println!("{:?}", swarm.program.commands);
 
         // execute commands
-        for i in (0..num_steps) {
+        for _ in 0..num_steps {
             swarm.update(test_world.width, test_world.height);
             println!("x: {}, y: {}, dir: {}", swarm.x, swarm.y, swarm.direction);
         }
@@ -203,7 +201,7 @@ mod tests {
         swarm.program.commands.push(SwarmCommand::TURN(turn_amt));
         swarm.program.commands.push(SwarmCommand::MOVE);
 
-        for i in (0..2) {
+        for _ in 0..2 {
             swarm.update(test_world.width, test_world.height);
             println!("x: {}, y: {}, dir: {}", swarm.x, swarm.y, swarm.direction);
         }
@@ -211,7 +209,6 @@ mod tests {
         //assert!(swarm.x - 1.0 <= f32::EPSILON);
         //assert!(swarm.x - 0.0 <= f32::EPSILON);
         assert!(swarm.direction - -turn_amt <= f32::EPSILON);
-
     }
 
     #[test]
