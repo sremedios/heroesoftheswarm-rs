@@ -63,18 +63,6 @@ impl GameServer {
     fn handle_message(message: OwnedMessage, world: &Arc<RwLock<World>>) -> Option<OwnedMessage> {
         match message {
             // Handle incoming text data
-<<<<<<< HEAD
-            OwnedMessage::Text(data) => {
-                match data.as_ref() {
-                    // This is sent if the client wants the game's state
-                    "U" => {
-                        // Get a readable reference to the world
-                        // (locks until the world is not being written)
-                        let world = world.read().unwrap();
-                        Some(OwnedMessage::Binary(vec![0; 20000]))
-                    }
-                    _ => None,
-=======
             OwnedMessage::Text(data) => match data.as_ref() {
                 // This is sent if the client wants the game's state
                 "U" => {
@@ -82,8 +70,8 @@ impl GameServer {
                     // (locks until the world is not being written)
                     let world = world.read().unwrap();
                     Some(OwnedMessage::Text(world.serialize().unwrap()))
->>>>>>> 4cfb3ba33adadc7e355e2aca4bef65dc0d297863
                 }
+                _ => None,
             }
             // Handle incoming binary data
             OwnedMessage::Binary(_) => None,
