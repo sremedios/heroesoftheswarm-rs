@@ -112,6 +112,7 @@ pub struct SwarmProgram {
 
     /// Program counter pointing to current command
     pub program_counter: usize,
+
 }
 
 /// Some functions for SwarmProgram
