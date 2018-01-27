@@ -56,28 +56,33 @@ impl Swarm {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 1.0;
 
-        for command in self.program.commands.iter() {
-            match command {
-                &SwarmCommand::MOVE => {
-                    // Update the x and y position
-                    self.x += swarm_update_distance * self.direction.to_radians().cos();
-                    self.y -= swarm_update_distance * self.direction.to_radians().sin();
-                }
-                &SwarmCommand::TURN(turn_amt) => {
-                    // turn logic
-                    self.direction += turn_amt;
-                }
-                &SwarmCommand::NOOP => {
-                    println!("No operation.");
-                }
-                _ => {
-                    panic!("Not a possible swarm command");
-                }
+        let pc: usize = self.program.program_counter;
 
+        match self.program.commands[pc] {
+            SwarmCommand::MOVE => {
+                // Update the x and y position
+                self.x += swarm_update_distance * self.direction.to_radians().cos();
+                self.y -= swarm_update_distance * self.direction.to_radians().sin();
+            }
+            SwarmCommand::TURN(turn_amt) => {
+                // turn logic
+                self.direction += turn_amt;
+            }
+            SwarmCommand::NOOP => {
+                println!("No operation.");
+            }
+            _ => {
+                panic!("Not a possible swarm command");
             }
         }
 
+        self.program.program_counter += 1;
+
         // TODO: Check collision
+        //
+        // TODO: Bounds checking
+        // maybe do as match?
+        self.direction %= 360.0;
     }
 }
 /// Represents a member of a swarm
@@ -140,40 +145,26 @@ mod tests {
         let move_command: SwarmCommand = SwarmCommand::MOVE;
         let turn_command: SwarmCommand = SwarmCommand::TURN(45.0);
 
-        for i in (0..8).step_by(2) {
+        // 16 steps to complete move turn pairs at 45 degrees
+        let num_steps: usize = 16;
+        // append commands to program
+        for i in (0..num_steps).step_by(2) {
             swarm.program.commands[i] = move_command;
             swarm.program.commands[i + 1] = turn_command;
             println!("{:?} ", i);
         }
 
-        println!("{:?}", swarm.program.commands);
-
-        // TODO Should update run one command or one tick????
+        println!("{:?}\n", swarm.program.commands);
 
 
-        // check 0 degree
-        swarm.direction = 0.0;
-        swarm.update();
-        assert_eq!(swarm.x, 1.);
-        assert_eq!(swarm.y, 0.);
-
-        // check 45 degree
-        swarm.x = 0.;
-        swarm.y = 0.;
-        swarm.direction = 45.0;
-        swarm.update();
-        assert_eq!(swarm.x, 0.5_f32.sqrt());
-        assert_eq!(swarm.y, -0.5_f32.sqrt());
-
-        // check 90 degree
-        swarm.x = 5.;
-        swarm.y = 0.;
-        swarm.direction = 90.0;
-        swarm.update();
-        assert!(swarm.x - 6. <= f32::EPSILON);
-        assert!(swarm.y == -1.);
-
-
+        // execute commands
+        for i in (0..num_steps) {
+            swarm.update();
+            println!("x: {}, y: {}, dir: {}\n", swarm.x, swarm.y, swarm.direction);
+        }
+        assert!(swarm.x - 0.0 <= f32::EPSILON);
+        assert!(swarm.y - 0.0 <= f32::EPSILON);
+        assert!(swarm.direction - 0.0 <= f32::EPSILON);
     }
 
     #[test]

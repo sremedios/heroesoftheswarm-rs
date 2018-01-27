@@ -92,7 +92,7 @@ fn test_verifier() {
         Err(error) => panic!("Error encountered: {}", error),
     };
 
-    let c3: SwarmCommand = match "TURN 3.1A".parse() {
+    let c3: SwarmCommand = match "TURN 3.14".parse() {
         Ok(com3) => com3,
         Err(error) => panic!("Error encountered: {}", error),
     };
@@ -107,13 +107,19 @@ fn test_verifier() {
 pub struct SwarmProgram {
     /// The list of commands
     pub commands: [SwarmCommand; MAX_NUM_COMMANDS],
+
+    /// Program counter pointing to current command
+    pub program_counter: usize,
 }
 
 /// Some functions for SwarmProgram
 impl SwarmProgram {
     /// Constructor (empty)
     pub fn new() -> Self {
-        SwarmProgram { commands: [SwarmCommand::NOOP; MAX_NUM_COMMANDS] }
+        SwarmProgram {
+            commands: [SwarmCommand::NOOP; MAX_NUM_COMMANDS],
+            program_counter: 0,
+        }
     }
 }
 
