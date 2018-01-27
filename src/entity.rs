@@ -113,11 +113,16 @@ mod tests {
     #[test]
     fn update_swarm() {
         let mut swarm = Swarm::new(0.0, 0.0);
-        swarm.x = 5.;
-        swarm.y = 4.;
-        assert_eq!(swarm.x, 5.);
-        assert_eq!(swarm.y, 4.);
+        swarm.x = 0.;
+        swarm.y = 0.;
+        assert_eq!(swarm.x, 0.);
+        assert_eq!(swarm.y, 0.);
+
+        swarm.direction = 45.0;
         swarm.update();
+
+        assert_eq!(swarm.x, 2_f32.sqrt());
+        assert_eq!(swarm.y, 2_f32.sqrt());
     }
 
     #[test]
