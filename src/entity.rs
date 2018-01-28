@@ -124,9 +124,9 @@ impl Swarm {
                 SwarmCommand::MOVE => {
                     // When within EPSILON of edge of the world, bounce off it
                     const EPSILON: f32 = 10.0;
-                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width
-                        || self.y - EPSILON <= 0.0
-                        || self.y + EPSILON >= world_height
+                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width ||
+                        self.y - EPSILON <= 0.0 ||
+                        self.y + EPSILON >= world_height
                     {
                         self.direction = -self.direction;
                     }
@@ -135,6 +135,47 @@ impl Swarm {
                     self.x += Swarm::UPDATE_DISTANCE * self.direction.to_radians().cos();
                     self.y -= Swarm::UPDATE_DISTANCE * self.direction.to_radians().sin();
                 }
+                SwarmCommand::LEFT => {
+                    // When within EPSILON of edge of the world, bounce off it
+                    const EPSILON: f32 = 10.0;
+                    if self.x - EPSILON >= 0.0 && self.x + EPSILON < world_width &&
+                        self.y - EPSILON >= 0.0 &&
+                        self.y + EPSILON < world_height
+                    {
+                        self.x += Swarm::UPDATE_DISTANCE;
+                    }
+                }
+                SwarmCommand::RIGHT => {
+                    // When within EPSILON of edge of the world, bounce off it
+                    const EPSILON: f32 = 10.0;
+                    if self.x - EPSILON >= 0.0 && self.x + EPSILON < world_width &&
+                        self.y - EPSILON >= 0.0 &&
+                        self.y + EPSILON < world_height
+                    {
+                        self.x -= Swarm::UPDATE_DISTANCE;
+                    }
+                }
+                SwarmCommand::UP => {
+                    // When within EPSILON of edge of the world, bounce off it
+                    const EPSILON: f32 = 10.0;
+                    if self.x - EPSILON >= 0.0 && self.x + EPSILON < world_width &&
+                        self.y - EPSILON >= 0.0 &&
+                        self.y + EPSILON < world_height
+                    {
+                        self.y -= Swarm::UPDATE_DISTANCE;
+                    }
+                }
+                SwarmCommand::DOWN => {
+                    // When within EPSILON of edge of the world, bounce off it
+                    const EPSILON: f32 = 10.0;
+                    if self.x - EPSILON >= 0.0 && self.x + EPSILON < world_width &&
+                        self.y - EPSILON >= 0.0 &&
+                        self.y + EPSILON < world_height
+                    {
+                        self.y += Swarm::UPDATE_DISTANCE;
+                    }
+                }
+
                 SwarmCommand::FIRE => {
                     // TODO maybe change the fire_cooldown scalar depending
                     // on what kind of weapon is fired?
@@ -151,18 +192,22 @@ impl Swarm {
                         member.direction %= 360.0;
                     }
                 }
-                SwarmCommand::FORMATION(formation) => match formation {
-                    Formation::GATHER => for (index, member) in self.members.iter_mut().enumerate()
-                    {
-                        member.x = self.offsets[index].0;
-                        member.y = self.offsets[index].1;
-                    },
-                    Formation::SPREAD => for (index, member) in self.members.iter_mut().enumerate()
-                    {
-                        member.x = self.offsets[self.offsets.len() - (1 + index)].0;
-                        member.y = self.offsets[self.offsets.len() - (1 + index)].1;
-                    },
-                },
+                SwarmCommand::FORMATION(formation) => {
+                    match formation {
+                        Formation::GATHER => {
+                            for (index, member) in self.members.iter_mut().enumerate() {
+                                member.x = self.offsets[index].0;
+                                member.y = self.offsets[index].1;
+                            }
+                        }
+                        Formation::SPREAD => {
+                            for (index, member) in self.members.iter_mut().enumerate() {
+                                member.x = self.offsets[self.offsets.len() - (1 + index)].0;
+                                member.y = self.offsets[self.offsets.len() - (1 + index)].1;
+                            }
+                        }
+                    }
+                }
                 SwarmCommand::NOOP => {}
             }
 
@@ -244,7 +289,10 @@ fn test_offset_calc() {
             // Generate i*4 positions for each shell
             for j in (0..(i * 4)) {
                 let rads: f32 = (j as f32) * ((3.141592654) / (2.0 * shell)); // Calculate angle of current offset
-                offset_list.push((shell * radius * (rads.cos()), shell * radius * (rads.sin()))); // Push scaled coordinates onto array
+                offset_list.push((
+                    shell * radius * (rads.cos()),
+                    shell * radius * (rads.sin()),
+                )); // Push scaled coordinates onto array
             }
         }
 
