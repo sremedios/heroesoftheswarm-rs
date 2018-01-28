@@ -127,7 +127,6 @@ impl World {
                 self.bullets.swap_remove(i);
                 upper_bound_bullets -= 1;
                 continue;
-
             }
 
             // collision detection here
@@ -163,7 +162,6 @@ impl World {
                                     // delete bullet
                                     self.bullets.swap_remove(i);
                                     upper_bound_bullets -= 1;
-
                                 }
                             }
                             None => {}
