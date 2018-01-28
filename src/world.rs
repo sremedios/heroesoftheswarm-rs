@@ -32,8 +32,9 @@ pub struct World {
     /// Each bullet in the world
     /// TODO: vec and element swap
     pub bullets: Vec<Bullet>,
-    /// Experience queue, updated after iterating through bullets
-    pub exp_queue: Vec<(usize, i64)>,
+    /// Leaderboard of players, from 1st place to 10th place
+    /// Tuple of (ID, experience)
+    pub leaderboard: Vec<(usize, i64)>,
 }
 /// Functions for the world
 impl World {
@@ -46,7 +47,7 @@ impl World {
             height: height,
             swarms: HashMap::new(),
             bullets: Vec::new(),
-            exp_queue: Vec::new(),
+            leaderboard: Vec::new(),
         }
     }
     /// Capacity constructor
@@ -60,7 +61,7 @@ impl World {
             height: height,
             swarms: HashMap::with_capacity(capacity),
             bullets: Vec::with_capacity(capacity * 10),
-            exp_queue: Vec::new(),
+            leaderboard: Vec::new(),
         }
     }
     /// Adds a player to the server with the given ID
@@ -95,6 +96,21 @@ impl World {
             index += 1;
         }
     }
+
+    /// Keep track of top 10 players
+    pub fn update_leaderboard(&mut self) {
+        let mut scores: Vec<(usize, i64)> = Vec::new();
+
+        for (id, swarm) in self.swarms.iter() {
+            scores.push((*id, swarm.experience));
+        }
+
+        self.leaderboard = scores.into_iter().collect::<Vec<(usize, i64)>>();
+        self.leaderboard.sort();
+        self.leaderboard.reverse();
+        self.leaderboard = self.leaderboard[..10].to_vec();
+    }
+
     /// Updates a player's program
     pub fn update_program(&mut self, player_id: usize, program: SwarmProgram) {
         match self.swarms.get_mut(&player_id) {
@@ -130,6 +146,11 @@ impl World {
     pub fn update(&mut self) -> Duration {
         // Record time at beginning of update
         let start_time = Instant::now();
+        let mut exp_queue: Vec<(usize, i64)> = Vec::new();
+
+        // start by updating leaderboard
+        self.update_leaderboard();
+
         // Update each member of the swarm with its own program
         for (id, swarm) in self.swarms.iter_mut() {
             swarm.update(*id, self.width, self.height, &mut self.bullets);
@@ -180,7 +201,7 @@ impl World {
                                 // Track killing player and experience
                                 let cur_bullet_ID = self.bullets[i].owner;
                                 let exp_amt = 1000;
-                                self.exp_queue.push((cur_bullet_ID, exp_amt));
+                                exp_queue.push((cur_bullet_ID, exp_amt));
 
                                 debug!("KILL");
                                 swarm.members.swap_remove(j);
@@ -196,7 +217,7 @@ impl World {
                 }
             }
             // update appropriate experience
-            for &(id, exp) in self.exp_queue.iter() {
+            for &(id, exp) in exp_queue.iter() {
                 self.swarms.get_mut(&id).unwrap().add_experience(exp);
             }
 
@@ -228,5 +249,14 @@ mod tests {
     #[test]
     fn initialize_world() {
         let world = World::new(1000.0, 1000.0);
+    }
+    #[test]
+    fn test_leaderboard() {
+        let mut world = World::new(1000.0, 1000.0);
+        for i in 0..20 {
+            world.add_player(i);
+            println!("{:?}", world.leaderboard);
+        }
+        assert!(world.leaderboard.len() <= 10);
     }
 }
