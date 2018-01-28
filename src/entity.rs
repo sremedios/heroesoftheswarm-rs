@@ -308,7 +308,7 @@ impl Bullet {
         self.x += bullet_update_distance * self.direction.to_radians().cos();
         self.y -= bullet_update_distance * self.direction.to_radians().sin();
         // Update duration by ticks
-        self.duration -= 1
+        self.duration -= 1;
         // TODO: Check collision
     }
 }
