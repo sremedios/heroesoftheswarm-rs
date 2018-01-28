@@ -167,9 +167,9 @@ impl World {
                                     self.bullets[i].owner != *id
                                 {
                                     member.health -= 1;
-                                    info!("HIT");
+                                    debug!("HIT");
                                     if member.health == 0 {
-                                        info!("KILL");
+                                        debug!("KILL");
                                         swarm.members[j] = None;
                                     }
                                     // delete bullet

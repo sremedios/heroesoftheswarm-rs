@@ -89,6 +89,14 @@ impl Swarm {
         // Return the swarm
         swarm
     }
+
+    /// Adds experience based on stuff TODO TODO
+    pub fn add_experience(&mut self, amt: i64) {
+        // TODO
+        self.experience += amt;
+    }
+
+
     /// Supplementary function to add color to a swarm. Typically used with the constructor
     pub fn with_color(mut self, color: (u8, u8, u8)) -> Self {
         self.color = color;
@@ -109,9 +117,9 @@ impl Swarm {
                 SwarmCommand::MOVE => {
                     // When within EPSILON of edge of the world, bounce off it
                     const EPSILON: f32 = 10.0;
-                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width
-                        || self.y - EPSILON <= 0.0
-                        || self.y + EPSILON >= world_height
+                    if self.x - EPSILON <= 0.0 || self.x + EPSILON >= world_width ||
+                        self.y - EPSILON <= 0.0 ||
+                        self.y + EPSILON >= world_height
                     {
                         self.direction = -self.direction;
                     }
@@ -179,7 +187,10 @@ impl Swarm {
             // Generate i*4 positions for each shell
             for j in 0..(i * 4) {
                 let rads: f32 = (j as f32) * ((3.141592654) / (2.0 * shell)); // Calculate angle of current offset
-                offset_list.push((shell * radius * (rads.cos()), shell * radius * (rads.sin()))); // Push scaled coordinates onto array
+                offset_list.push((
+                    shell * radius * (rads.cos()),
+                    shell * radius * (rads.sin()),
+                )); // Push scaled coordinates onto array
             }
         }
 
@@ -219,7 +230,10 @@ fn test_offset_calc() {
             // Generate i*4 positions for each shell
             for j in (0..(i * 4)) {
                 let rads: f32 = (j as f32) * ((3.141592654) / (2.0 * shell)); // Calculate angle of current offset
-                offset_list.push((shell * radius * (rads.cos()), shell * radius * (rads.sin()))); // Push scaled coordinates onto array
+                offset_list.push((
+                    shell * radius * (rads.cos()),
+                    shell * radius * (rads.sin()),
+                )); // Push scaled coordinates onto array
             }
         }
 
