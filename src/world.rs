@@ -31,6 +31,8 @@ pub struct World {
     /// Each bullet in the world
     /// TODO: vec and element swap
     pub bullets: Vec<Bullet>,
+    /// Experience queue, updated after iterating through bullets
+    pub exp_queue: Vec<(usize, i64)>,
 }
 /// Functions for the world
 impl World {
@@ -43,6 +45,7 @@ impl World {
             height: height,
             swarms: HashMap::new(),
             bullets: Vec::new(),
+            exp_queue: Vec::new(),
         }
     }
     /// Capacity constructor
@@ -56,6 +59,7 @@ impl World {
             height: height,
             swarms: HashMap::with_capacity(capacity),
             bullets: Vec::with_capacity(capacity * 10),
+            exp_queue: Vec::new(),
         }
     }
     /// Adds a player to the server with the given ID
@@ -165,6 +169,11 @@ impl World {
                             swarm.members[j].health -= 1;
                             debug!("HIT");
                             if swarm.members[j].health == 0 {
+                                // Track killing player and experience
+                                let cur_bullet_ID = self.bullets[i].owner;
+                                let exp_amt = 1000;
+                                self.exp_queue.push((cur_bullet_ID, exp_amt));
+
                                 debug!("KILL");
                                 swarm.members.swap_remove(j);
                                 upper_bound_members -= 1;
@@ -178,6 +187,11 @@ impl World {
                     }
                 }
             }
+            // update appropriate experience
+            for &(id, exp) in self.exp_queue.iter() {
+                self.swarms.get_mut(&id).unwrap().add_experience(exp);
+            }
+
             // increment to next bullet
             i += 1;
         }
