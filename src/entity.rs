@@ -112,6 +112,13 @@ impl Swarm {
     ) {
         // TODO: put this somewhere else
         let swarm_update_distance: f32 = 5.0;
+
+        if self.members.len() <= 0 {
+            self.experience = 0;
+            // TODO make some kind of respawn flag
+        }
+
+
         if self.program.commands.len() != 0 {
             match self.program.commands[self.program.program_counter] {
                 SwarmCommand::MOVE => {
