@@ -202,7 +202,9 @@ impl World {
                             exp_queue.push((self.bullets[i].owner, 10));
                             debug!("HIT");
                             if swarm.members[j].health == 0 {
+
                                 exp_queue.push((self.bullets[i].owner, 50));
+
                                 debug!("KILL");
                                 swarm.members.swap_remove(j);
                                 upper_bound_members -= 1;

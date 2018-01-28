@@ -68,7 +68,7 @@ impl Swarm {
             offsets: offsets,
             color: (0, 0, 0),
             experience: 0,
-            fire_cooldown: 0, // start with no cooldown
+            fire_cooldown: 0,      // start with no cooldown
             formation_cooldown: 0, // start with no cooldown
             program: SwarmProgram::new(vec![
                 SwarmCommand::MOVE,
@@ -194,14 +194,13 @@ impl Swarm {
                         member.direction %= 360.0;
                     }
                 }
-                SwarmCommand::FORMATION(formation) => {
-                    if self.formation_cooldown == 0 {
-                        match formation {
-                            Formation::GATHER => {
-                                for (index, member) in self.members.iter_mut().enumerate() {
-                                    member.x = self.offsets[index].0;
-                                    member.y = self.offsets[index].1;
-                                }
+
+                SwarmCommand::FORMATION(formation) => if self.formation_cooldown == 0 {
+                    match formation {
+                        Formation::GATHER => {
+                            for (index, member) in self.members.iter_mut().enumerate() {
+                                member.x = self.offsets[index].0;
+                                member.y = self.offsets[index].1;
                             }
                             Formation::SPREAD => {
                                 for (index, member) in self.members.iter_mut().enumerate() {
@@ -209,10 +208,11 @@ impl Swarm {
                                     member.y = self.offsets[self.offsets.len() - (1 + index)].1;
                                 }
                             }
-                        };
-                        self.formation_cooldown = 30
-                    }
-                }
+                        }
+
+                    };
+                    self.formation_cooldown = 30
+                },
                 SwarmCommand::NOOP => {}
             }
 
