@@ -36,7 +36,6 @@ pub struct World {
     /// Leaderboard of players, from 1st place to 10th place
     /// Tuple of (ID, experience)
     pub leaderboard: Vec<(usize, i64)>,
-
 }
 /// Functions for the world
 impl World {
@@ -50,7 +49,6 @@ impl World {
             swarms: HashMap::new(),
             bullets: Vec::new(),
             leaderboard: Vec::new(),
-
         }
     }
     /// Capacity constructor
@@ -65,7 +63,6 @@ impl World {
             swarms: HashMap::with_capacity(capacity),
             bullets: Vec::with_capacity(capacity * 10),
             leaderboard: Vec::new(),
-
         }
     }
     /// Adds a player to the server with the given ID
@@ -77,8 +74,11 @@ impl World {
         let (x, y) = self.random_position();
         // Get a random color
         let color = World::random_color();
-        self.swarms
-            .insert(id, Swarm::new(x, y, initial_num_members).with_color(color));
+        self.swarms.insert(
+            id,
+            Swarm::new(x, y, initial_num_members)
+                .with_color(color),
+        );
     }
 
     /// Removes a player to the server with the given ID
@@ -90,6 +90,7 @@ impl World {
         }
         // Remove the player's bullets
         let mut index: usize = 0;
+
         while index < self.bullets.len() {
             if self.bullets[index].owner == id {
                 self.bullets.swap_remove(index);
@@ -109,7 +110,7 @@ impl World {
         self.leaderboard = scores.into_iter().collect::<Vec<(usize, i64)>>();
         self.leaderboard.sort();
         self.leaderboard.reverse();
-        self.leaderboard = self.leaderboard[..10].to_vec();
+        self.leaderboard = self.leaderboard.iter().cloned().take(10).collect();
     }
 
     /// Updates a player's program
@@ -160,6 +161,7 @@ impl World {
         // Update each bullet
         let mut i: usize = 0;
         let mut upper_bound_bullets: usize = self.bullets.len();
+        let mut exp_queue: Vec<(usize, i64)> = Vec::new();
         'outer: while i < upper_bound_bullets {
             // position update bullets
 
@@ -173,15 +175,14 @@ impl World {
             }
 
             // collision detection here
-            let mut exp_queue: Vec<(usize, i64)> = Vec::new();
 
             // check each swarm
             for (id, swarm) in self.swarms.iter_mut() {
                 // TODO: choose the epsilon to consider as "incoming dangerous
                 // bullets"
                 let epsilon: f32 = 60.0;
-                if (self.bullets[i].x - swarm.x).abs() <= epsilon
-                    && (self.bullets[i].y - swarm.y).abs() <= epsilon
+                if (self.bullets[i].x - swarm.x).abs() <= epsilon &&
+                    (self.bullets[i].y - swarm.y).abs() <= epsilon
                 {
                     let mut j: usize = 0;
                     let mut upper_bound_members = swarm.members.len();
@@ -191,20 +192,17 @@ impl World {
                         // detect colllision
                         // for now detects if the bullet passes within a
                         // square hitbox around the swarm member
-                        if (self.bullets[i].x - (swarm.x + swarm.members[j].x)).abs()
-                            <= swarm_member_radius
-                            && (self.bullets[i].y - (swarm.y + swarm.members[j].y)).abs()
-                                <= swarm_member_radius
-                            && self.bullets[i].owner != *id
+                        if (self.bullets[i].x - (swarm.x + swarm.members[j].x)).abs() <=
+                            swarm_member_radius &&
+                            (self.bullets[i].y - (swarm.y + swarm.members[j].y)).abs() <=
+                                swarm_member_radius &&
+                            self.bullets[i].owner != *id
                         {
                             swarm.members[j].health -= 1;
+                            exp_queue.push((self.bullets[i].owner, 10));
                             debug!("HIT");
                             if swarm.members[j].health == 0 {
-                                // Track killing player and experience
-                                let cur_bullet_ID = self.bullets[i].owner;
-                                let exp_amt = 1000;
-                                exp_queue.push((cur_bullet_ID, exp_amt));
-
+                                exp_queue.push((self.bullets[i].owner, 50));
                                 debug!("KILL");
                                 swarm.members.swap_remove(j);
                                 upper_bound_members -= 1;
@@ -220,12 +218,11 @@ impl World {
             }
             // update appropriate experience
             for &(id, exp) in exp_queue.iter() {
-                match self.swarms.get_mut(&id) {
-                    Some(mut swarm) => swarm.add_experience(exp),
-                    None => {}
+                if let Some(mut e_swarm) = self.swarms.get_mut(&id) {
+                    e_swarm.experience += exp;
                 }
             }
-
+            exp_queue.clear();
             // increment to next bullet
             i += 1;
         }
